@@ -24,7 +24,7 @@ steps:
   - id: build
     name: 'gcr.io/cloud-builders/docker'
     args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/riccardo-blog-test-v1/service-a/service-a:${COMMIT_SHA}', '-f', 'Dockerfile']
-    dir: 'app'
+  #  dir: 'app'
   # Run api tests
   #- id: api tests
   #  name: 'us-central1-docker.pkg.dev/riccardo-blog-test-v1/pop-stats/pop-stats:${COMMIT_SHA}'
