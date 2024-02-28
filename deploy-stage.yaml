@@ -5,7 +5,7 @@ spec:
   template:
     spec:
       containers:
-      - image: app
+      - image: us-central1-docker.pkg.dev/riccardo-blog-test-v1/gp-demo-service-a/service-a:${COMMIT_SHA}
         resources:
           limits:
             cpu: 1000m
