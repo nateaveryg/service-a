@@ -1,0 +1,129 @@
+# Overview: Cloud Build build pipeline with Cloud Deploy release using git tag.
+
+substitutions:
+  _APP_NAME: service-a
+  _PIPELINE_NAME: cd-gui-demo
+  LOCATION: us-central1
+  REPO_NAME: gp-demo-service-a
+
+
+steps:
+
+  # Build image
+  - id: build
+    name: gcr.io/cloud-builders/docker@sha256:1fe0557459fea8552d5ce57bb77aaf238139bd69131d670e152e68358f6cb13c
+    entrypoint: /bin/bash
+    waitFor:
+    - test
+    dir: app
+    args:
+    - -c
+    - |
+      docker build --build-arg VERSION=${TAG_NAME} \
+        -t "${LOCATION}-docker.pkg.dev/riccardo-blog-test-v1/${REPO_NAME}/${_APP_NAME}:${COMMIT_SHA}" \
+        -t "${LOCATION}-docker.pkg.dev/riccardo-blog-test-v1/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" \
+        .
+  
+  # Publish image, get digest, and save it to file.
+  # Digest because tags aren't (really) cryptographically verifiable.
+  - id: publish
+    name: gcr.io/cloud-builders/docker@sha256:1fe0557459fea8552d5ce57bb77aaf238139bd69131d670e152e68358f6cb13c
+    entrypoint: /bin/bash
+    waitFor: 
+    - build
+    dir: app
+    args:
+    - -c
+    - |-
+      docker push "${LOCATION}-docker.pkg.dev/riccardo-blog-test-v1/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}"
+      docker image inspect "${LOCATION}-docker.pkg.dev/riccardo-blog-test-v1/${REPO_NAME}/${_APP_NAME}:${TAG_NAME}" \
+        --format '{{index .RepoDigests 0}}' > image-digest.txt
+      cat image-digest.txt
+
+  # Generate Software Bill of Materials (SBOM).
+  # Generate SBOM file for all image layers in JSON format (SPDX schema), 
+  # and creates attestation for that container image with the SBOM as predicate
+  # Future: Automatically SBOM generation in CA. 
+  - id: sbom
+    name: us-docker.pkg.dev/s3cme1/builders/sbominator@sha256:d5336ddf0897758f641be4e5fa5c8de299289d4adca6388e9f820833c83706cb
+    entrypoint: /bin/bash
+    waitFor:
+    - publish
+    dir: app
+    env:
+    - PROJECT=riccardo-blog-test-v1
+    - KEY=$_KMS_KEY_NAME
+    - COMMIT=$COMMIT_SHA
+    - VERSION=$TAG_NAME
+    - ATTESTOR=$_BIN_AUTHZ_ID
+    args:
+    - -c
+    - |-
+      builder $(cat image-digest.txt)
+
+  # Test against my vulnerability policy.
+  # For stability of the demo uses a pre-built image.
+  # See the grafeas/kritis for instruction on how to build your own signer.
+  # https://github.com/grafeas/kritis/blob/master/docs/signer.md
+  # Check-based policies
+  # Future: Call to check-based policy API in BinAuthz (consistent controls)
+  - id: scan
+    name: us-docker.pkg.dev/s3cme1/builders/kritis-signer@sha256:b6d76a209a79a7409e552f81e3a362fc92688f91ab1b67cedf014ee5a03cd97a
+    entrypoint: /bin/bash
+    waitFor:
+    - publish
+    args:
+    - -c
+    - |-
+      /kritis/signer \
+        -mode=check-and-sign -v=10 -alsologtostderr \
+        -image=$(/bin/cat app/image-digest.txt) \
+        -policy=policy/vulnz-signing-policy.yaml \
+        -note_name=${_NOTE_NAME} \
+        -kms_key_name=${_KMS_KEY_NAME} \
+        -kms_digest_alg=${_KMS_DIGEST_ALG}
+
+  # Attest image with BinAuthz (attestation to X)
+  # Future: Could be unnecessary, given SBOM/Provenance/Vulnerability-based policy checks
+  - id: attest
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:abe63daaa5a79e06c0e423b893237786dd221a4518a22c4b7cb5c2acc2836497
+    entrypoint: /bin/bash
+    waitFor:
+    - sbom
+    - scan
+    args:
+    - -c
+    - |-
+      gcloud beta container binauthz attestations sign-and-create \
+        --attestor projects/riccardo-blog-test-v1/attestors/built-by-cloud-build \
+        --artifact-url $(cat app/image-digest.txt) \
+        --keyversion ${_KMS_KEY_NAME}
+
+  # Create release in Google Cloud Deploy
+  - id: release
+    name: gcr.io/google.com/cloudsdktool/cloud-sdk@sha256:abe63daaa5a79e06c0e423b893237786dd221a4518a22c4b7cb5c2acc2836497
+    entrypoint: /bin/bash
+    waitFor:
+    - attest
+    dir: app
+    args:
+    - -c
+    - |
+      gcloud deploy releases create rel-${SHORT_SHA} \
+      --delivery-pipeline ${_PIPELINE_NAME} \
+      --region ${LOCATION} \
+      --annotations "commitId=${REVISION_ID},tag=${TAG_NAME}" \
+      --images "${_APP_NAME}=$(cat image-digest.txt)"
+
+images:
+- ${LOCATION}-docker.pkg.dev/$PROJECT_ID/$REPO_NAME/$_APP_NAME:$TAG_NAME
+
+options:
+  # Verify generation of attestations and provenance metadata for this build.
+  # Otherwise, GCB generates provenance for global builds only.
+  requestedVerifyOption: VERIFIED
+  sourceProvenanceHash: ["SHA256"]
+
+
+tags:
+- demo
