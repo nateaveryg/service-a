@@ -15,7 +15,7 @@ serialPipeline:
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
- name: stage
+ name: cd-gui-target-stage
 description: Cloud Run Stage service
 run:
  location: projects/_PROJECT_ID/locations/us-central1
@@ -24,7 +24,7 @@ run:
 apiVersion: deploy.cloud.google.com/v1
 kind: Target
 metadata:
- name: prod
+ name: cd-gui-target-prod
 description: Cloud Run PROD service
 run:
  location: projects/_PROJECT_ID/locations/us-central1
