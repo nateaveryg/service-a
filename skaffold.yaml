@@ -3,11 +3,11 @@ kind: Config
 metadata: 
   name: service-a
 profiles:
-- name: stage
+- name: cd-gui-target-stage
   manifests:
     rawYaml:
     - deploy-stage.yaml
-- name: prod
+- name: cd-gui-target-prod
   manifests:
     rawYaml:
     - deploy-prod.yaml
