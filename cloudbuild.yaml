@@ -15,10 +15,10 @@ steps:
   #      echo ####### pull required files for the app ########
   #      pip install -r ../app/requirements.txt
   # Install dependencies
-  #- id: Install python dependencies
-  #  name: python
-  #  entrypoint: pip
-  #  args: ['install', '-i', 'us-central1-docker.pkg.dev/$PROJECT_ID/python-local', '-r', 'requirements.txt', '--user']
+  - id: Install python dependencies
+    name: python
+    entrypoint: pip
+    args: ['install', '-i', 'us-central1-docker.pkg.dev/$PROJECT_ID/python-local', '-r', 'requirements.txt', '--user']
   #  dir: 'app' 
   # Build and tag using commit sha
   - id: build
