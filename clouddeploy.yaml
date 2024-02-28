@@ -1,20 +1,30 @@
 apiVersion: deploy.cloud.google.com/v1
 kind: DeliveryPipeline
 metadata:
-  name: cd-gui-demo
+ name: cloud-run-pipeline
+description: application deployment pipeline
 serialPipeline:
-  stages:
-  - targetId: cd-gui-target-stage
-    profiles:
-    - cd-gui-target-stage
-  - targetId: cd-gui-target-prod
-    profiles:
-    - cd-gui-target-prod
-    strategy:
-      canary:
-        runtimeConfig:
-          cloudRun:
-            automaticTrafficControl: true
-        canaryDeployment:
-          percentages:
-          - 10
+ stages:
+ - targetId: cd-gui-target-stage
+   profiles: [cd-gui-target-stage]
+ - targetId: cd-gui-target-prod
+   profiles: [cd-gui-target-prod]
+
+---
+
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+ name: cd-gui-target-stage
+description: Cloud Run Stage service
+run:
+ location: projects/_PROJECT_ID/locations/us-central1
+---
+
+apiVersion: deploy.cloud.google.com/v1
+kind: Target
+metadata:
+ name: cd-gui-target-prod
+description: Cloud Run PROD service
+run:
+ location: projects/_PROJECT_ID/locations/us-central1
