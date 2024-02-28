@@ -6,9 +6,9 @@ description: application deployment pipeline
 serialPipeline:
  stages:
  - targetId: cd-gui-target-stage
-   profiles: [cd-gui-target-stage]
+   profiles: [stage]
  - targetId: cd-gui-target-prod
-   profiles: [cd-gui-target-prod]
+   profiles: [prod]
 
 ---
 
