@@ -55,9 +55,9 @@ steps:
 
         gcloud deploy releases create release-$(date +'%Y%m%d%H%M%S') \
           --region us-central1 \
-          --delivery-pipeline=pop-stats-multitarget \
-          --annotations=commitId=${REVISION_ID},gitlink=https://github.com/nateaveryg/pop-kustomize/commit/${COMMIT_SHA} \
-          --images=pop-stats=us-central1-docker.pkg.dev/riccardo-blog-test-v1/pop-stats/pop-stats:${COMMIT_SHA}@$(cat digest)
+          --delivery-pipeline=cd-gui-demo \
+          --annotations=commitId=${REVISION_ID},gitlink=https://github.com/nateaveryg/service-a/commit/${COMMIT_SHA} \
+          --images=pop-stats=us-central1-docker.pkg.dev/riccardo-blog-test-v1/gp-demo-service-a/service-a:${COMMIT_SHA}@$(cat digest)
         
 
 ### Known Good Release ####        
