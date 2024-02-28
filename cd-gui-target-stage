@@ -1,6 +1,6 @@
 kind: Service
 metadata:
-  name: app-dev
+  name: service-a-stage
 spec:
   template:
     spec:
