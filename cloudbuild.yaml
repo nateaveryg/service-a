@@ -23,7 +23,7 @@ steps:
   # Build and tag using commit sha
   - id: build
     name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/riccardo-blog-test-v1/service-a/service-a:${COMMIT_SHA}', '-f', 'Dockerfile']
+    args: ['build', '.', '-t', 'us-central1-docker.pkg.dev/riccardo-blog-test-v1/gp-demo-service-a/service-a:${COMMIT_SHA}', '-f', 'Dockerfile']
   #  dir: 'app'
   # Run api tests
   #- id: api tests
