@@ -16,7 +16,7 @@ steps:
   #      pip install -r ../app/requirements.txt
   # Install dependencies
   - id: Install python dependencies
-    name: python
+    name: python:3.13.0a4
     entrypoint: pip
     args: ['install', '-r', 'requirements.txt', '--user']
   #  args: ['install', '-i', 'https://us-central1-python.pkg.dev/riccardo-blog-test-v1/python-pypi', '-r', 'requirements.txt', '--user']
