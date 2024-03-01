@@ -59,7 +59,7 @@ steps:
           --region us-central1 \
           --delivery-pipeline=cd-gui-demo \
           --annotations=commitId=${REVISION_ID},gitlink=https://github.com/nateaveryg/service-a/commit/${COMMIT_SHA} \
-          --images=service-as=us-central1-docker.pkg.dev/riccardo-blog-test-v1/gp-demo-service-a/service-a:$COMMIT_SHA --format="value(image_summary.digest)"
+          --images=service-a=us-central1-docker.pkg.dev/riccardo-blog-test-v1/gp-demo-service-a/service-a:$COMMIT_SHA --format="value(image_summary.digest)"
         
 
 ### Known Good Release ####        
