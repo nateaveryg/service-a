@@ -1,4 +1,4 @@
-apiVersion: serving.knative.dev/v1
+viceapiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
   name: service-a-stage
@@ -6,4 +6,4 @@ spec:
   template:
     spec:
       containers:
-      - image: us-central1-docker.pkg.dev/riccardo-blog-test-v1/gp-demo-service-a/service-a/service-a:${COMMIT_SHA}
+      - image: service-a
